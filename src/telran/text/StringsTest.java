@@ -15,7 +15,7 @@ class StringsTest {
 		assertTrue("griy".matches(regex));
 		assertFalse("groy".matches(regex));
 
-		String regex_1 = "a?1234";  
+		String regex_1 = "a?1234";
 		assertTrue("1234".matches(regex_1));
 		assertTrue("a1234".matches(regex_1));
 		assertFalse("b1234".matches(regex_1));
@@ -79,7 +79,7 @@ class StringsTest {
 	void ipV4OctetTest() {
 		String regex = Strings.ipV4Octet();
 		assertTrue("000".matches(regex));
-		assertTrue("00".matches(regex)); 
+		assertTrue("00".matches(regex));
 		assertTrue("0".matches(regex));
 		assertTrue("99".matches(regex));
 		assertTrue("1".matches(regex));
