@@ -109,5 +109,37 @@ class StringsTest {
 		assertFalse("1.2.3.4.5".matches(regex));
 		assertFalse("1.2.3".matches(regex));
 	}
+	
+	@Test
+	void mobileIsraelTest() {
+		//Israel code optional +972
+		//code operator 050, 051, 052, 053, 054, 055,056,057,058, 059
+		//code operator 072 - 077
+		//7 digits that may or may not be separated by dash
+		String regex = Strings.mobileIsraelPhone();
+		assertTrue("+972-541234567".matches(regex));
+		assertTrue("0541234567".matches(regex));
+		assertTrue("074-1-2345-67".matches(regex));
+		assertTrue("+972541234567".matches(regex));
+		assertTrue("+972  541234567".matches(regex));
+		assertFalse("+972-0541234567".matches(regex));
+		assertFalse("+9720541234567".matches(regex));
+		assertFalse("972-541234567".matches(regex));
+		assertFalse("0641234567".matches(regex));
+		assertFalse("+972-54123v567".matches(regex));
+	}
+	@Test
+	void arithmeticExpressionTest() {
+		String regex = Strings.arithmeticExpression();
+		assertTrue("  20".matches(regex));
+		assertTrue("20 +10 * 2/100 +4".matches(regex));
+		assertTrue(" 20 +10 * 2/100 +4 ".matches(regex));
+		assertFalse("  20+".matches(regex));
+		assertFalse("  20+a".matches(regex));
+		assertFalse("10  20".matches(regex));
+		assertFalse("  # * 10".matches(regex));
+		assertFalse("  20+&".matches(regex));
+		assertFalse(" +20".matches(regex));
+	}
 
 }
