@@ -1,8 +1,11 @@
-package telran.text;
+package telran.text.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+
+import telran.text.Strings;
 
 class StringsTest {
 
@@ -106,16 +109,14 @@ class StringsTest {
 		assertTrue("100.199.200.255".matches(regex));
 		assertFalse(".1.2.3.4".matches(regex));
 		assertFalse("1.2.3.4.".matches(regex));
-		assertFalse("1.2.3.4.5".matches(regex));
+		assertFalse(".1.&2.3.4".matches(regex));
 		assertFalse("1.2.3".matches(regex));
+		assertFalse("1.2.3.4.5".matches(regex));
+		assertFalse("123 123 123 123".matches(regex));
 	}
-	
+
 	@Test
 	void mobileIsraelTest() {
-		//Israel code optional +972
-		//code operator 050, 051, 052, 053, 054, 055,056,057,058, 059
-		//code operator 072 - 077
-		//7 digits that may or may not be separated by dash
 		String regex = Strings.mobileIsraelPhone();
 		assertTrue("+972-541234567".matches(regex));
 		assertTrue("0541234567".matches(regex));
@@ -128,18 +129,29 @@ class StringsTest {
 		assertFalse("0641234567".matches(regex));
 		assertFalse("+972-54123v567".matches(regex));
 	}
+
 	@Test
 	void arithmeticExpressionTest() {
-		String regex = Strings.arithmeticExpression();
-		assertTrue("  20".matches(regex));
-		assertTrue("20 +10 * 2/100 +4".matches(regex));
-		assertTrue(" 20 +10 * 2/100 +4 ".matches(regex));
-		assertFalse("  20+".matches(regex));
-		assertFalse("  20+a".matches(regex));
-		assertFalse("10  20".matches(regex));
-		assertFalse("  # * 10".matches(regex));
-		assertFalse("  20+&".matches(regex));
-		assertFalse(" +20".matches(regex));
+		assertTrue(Strings.isArithmeticExpression(" 12 "));
+		assertTrue(Strings.isArithmeticExpression(" 12/ 6 "));
+		assertTrue(Strings.isArithmeticExpression("12/2"));
+		assertTrue(Strings.isArithmeticExpression(" 12* 2 / 3 + 1000 "));
+		assertTrue(Strings.isArithmeticExpression(" 120  /  50 + 100 - 2 * 3 / 500"));
+		assertFalse(Strings.isArithmeticExpression(" 12 18"));
+		assertFalse(Strings.isArithmeticExpression(" 12/3&4 "));
+		assertFalse(Strings.isArithmeticExpression(" 12+18- "));
+		assertFalse(Strings.isArithmeticExpression(" 12/ 18 +100 10"));
+	}
+
+	@Test
+	void computeExpressionTest() {
+		assertEquals(12, Strings.computeExpression(" 12 "));
+		assertEquals(2, Strings.computeExpression(" 12/ 6"));
+		assertEquals(6, Strings.computeExpression("12/2"));
+		assertEquals(1008, Strings.computeExpression(" 12*  2 / 3 + 1000 "));
+		assertEquals(0, Strings.computeExpression(" 120 / 50 + 100 - 2 * 3 / 500 "));
+		assertThrowsExactly(IllegalArgumentException.class,
+				() -> Strings.computeExpression(" 12/ 18 + 100 10"));
 	}
 
 }

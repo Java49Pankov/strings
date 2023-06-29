@@ -1,8 +1,20 @@
 package telran.text;
 
+import java.util.HashMap;
+import java.util.function.BinaryOperator;
+
 public class Strings {
-	public static String javaVariableName() {
-		return "[a-zA-Z$][\\w$]*|_[\\w$]+";
+	static HashMap<String, BinaryOperator<Integer>> mapOperations;
+	static {
+		mapOperations = new HashMap<>();
+		mapOperations.put("-", (a, b) -> a - b);
+		mapOperations.put("+", (a, b) -> a + b);
+		mapOperations.put("*", (a, b) -> a * b);
+		mapOperations.put("/", (a, b) -> a / b);
+	}
+
+	public static String javaVariableName() {    
+		return "([a-zA-Z$][\\w$]*|_[\\w$]+)";
 	}
 
 	public static String zero_300() {
@@ -23,29 +35,93 @@ public class Strings {
 		return String.format("(%s\\.){3}%1$s", octetRegex);
 	}
 
-	/**
-	 * @return regex for mobile Israel phone Israel code optional +972 (if the code
-	 *         specified, operator code should be with no 0) operator code: 050-059
-	 *         , 072-077 7 digits that may or may not be separated by dash
-	 */
 	public static String mobileIsraelPhone() {
 		return "(\\+972\\s*-?|0)(5\\d|7[2-7])(-?\\d){7}";
 	}
 
-	/**
-	 * @return regex for arithmetic expressions without brackets operators - +, -,
-	 *         *, / operands integer positive number with possible leading zero's
-	 *         Positive examples: 1. " 20" 2. "20 +10 * 2/100 +4" 3. " 20 +10 *
-	 *         2/100 +4 " Negative examples: 1. " 20+" 2. "10 20" 3. " +20"
-	 */
 	public static String arithmeticExpression() {
-		return "\\s*\\d+(\\s*[+*/-]\\s*\\d+)*\\s*";
+		String operandRE = operand();
+		String operatorRE = operator();
+		return String.format("%1$s(%2$s%1$s)*", operandRE, operatorRE);
 	}
 
-	public static String arithmeticExpression_1() {
-		String delimiter = "\\s*";
-		String operand = "\\d+";
-		String operator = "[+*/-]";
-		return delimiter + operand + "(" + delimiter + operator + delimiter + operand + ")" + "*" + delimiter;
+	public static String operator() {
+		return "\\s*([-+*/])\\s*";
 	}
+
+	public static String operand() {
+		// assumption: not unary operators
+		return "(\\d+)";
+	}
+
+	public static boolean isArithmeticExpression(String expression) {
+		expression = expression.trim();
+		return expression.matches(arithmeticExpression());
+	}
+
+	public static int computeExpression(String expression) { 
+		if (!isArithmeticExpression(expression)) {
+			throw new IllegalArgumentException("Wrong arithmetic expression");
+		}
+		expression = expression.replaceAll("\\s+", "");
+		String[] operands = expression.split(operator());
+		String[] operators = expression.split(operand());
+		int res = Integer.parseInt(operands[0]);
+		for (int i = 1; i < operands.length; i++) {
+			int operand = Integer.parseInt(operands[i]);
+			res = mapOperations.get(operators[i]).apply(res, operand);
+		}
+		return res;
+	}
+
+	// Update whole code for any numbers (double)
+	// Update code taking into consideration possible variable names
+	public static double computeExpression(String expression, HashMap<String, Double> mapVariables) {
+		// TODO
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
 }
