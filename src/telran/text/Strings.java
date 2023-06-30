@@ -1,42 +1,22 @@
 package telran.text;
 
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.function.BinaryOperator;
 
 public class Strings {
-	static HashMap<String, BinaryOperator<Integer>> mapOperations;
+	static HashMap<String, BinaryOperator<Double>> mapOperations;
 	static {
 		mapOperations = new HashMap<>();
 		mapOperations.put("-", (a, b) -> a - b);
 		mapOperations.put("+", (a, b) -> a + b);
 		mapOperations.put("*", (a, b) -> a * b);
 		mapOperations.put("/", (a, b) -> a / b);
+		mapOperations.put("%", (a, b) -> a % b);
 	}
 
-	public static String javaVariableName() {    
+	public static String javaVariableName() {
 		return "([a-zA-Z$][\\w$]*|_[\\w$]+)";
-	}
-
-	public static String zero_300() {
-		return "[1-9]\\d?|[1-2]\\d\\d|300|0";
-	}
-
-	public static String ipV4Octet() {
-		return "([01]?\\d\\d?|2([0-4]\\d|5[0-5]))";
-	}
-
-	public static String ipV4() {
-		String octetRegex = ipV4Octet();
-		return String.format("(%s\\.){3}%s", octetRegex, octetRegex);
-	}
-
-	public static String ipV4_v1() {
-		String octetRegex = ipV4Octet();
-		return String.format("(%s\\.){3}%1$s", octetRegex);
-	}
-
-	public static String mobileIsraelPhone() {
-		return "(\\+972\\s*-?|0)(5\\d|7[2-7])(-?\\d){7}";
 	}
 
 	public static String arithmeticExpression() {
@@ -50,8 +30,8 @@ public class Strings {
 	}
 
 	public static String operand() {
-		// assumption: not unary operators
-		return "(\\d+)";
+		return "(\\d+\\.?\\d*|(\\p{Alpha}))";
+
 	}
 
 	public static boolean isArithmeticExpression(String expression) {
@@ -59,69 +39,39 @@ public class Strings {
 		return expression.matches(arithmeticExpression());
 	}
 
-	public static int computeExpression(String expression) { 
+	public static double computeExpression(String expression, HashMap<String, Double> mapVariables) {
 		if (!isArithmeticExpression(expression)) {
 			throw new IllegalArgumentException("Wrong arithmetic expression");
 		}
 		expression = expression.replaceAll("\\s+", "");
 		String[] operands = expression.split(operator());
 		String[] operators = expression.split(operand());
-		int res = Integer.parseInt(operands[0]);
+		double res = parseOperand(operands[0], mapVariables);
 		for (int i = 1; i < operands.length; i++) {
-			int operand = Integer.parseInt(operands[i]);
+			double operand = parseOperand(operands[i], mapVariables);
 			res = mapOperations.get(operators[i]).apply(res, operand);
+		}
+		return Math.round(res * 100) / 100.0;
+	}
+
+	private static double parseOperand(String operand, HashMap<String, Double> mapVariables) {
+		double res;
+		if (operand.matches(javaVariableName())) {
+			res = getValue(operand, mapVariables);
+		} else {
+			res = Double.parseDouble(operand);
 		}
 		return res;
 	}
 
-	// Update whole code for any numbers (double)
-	// Update code taking into consideration possible variable names
-	public static double computeExpression(String expression, HashMap<String, Double> mapVariables) {
-		// TODO
-		return 0;
+	private static double getValue(String operand, HashMap<String, Double> mapVariables) {
+		double res = 0;
+		if (mapVariables.containsKey(operand)) {
+			res = mapVariables.get(operand);
+		} else {
+			throw new NoSuchElementException();
+		}
+		return res;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 }
