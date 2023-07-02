@@ -12,11 +12,23 @@ public class Strings {
 		mapOperations.put("+", (a, b) -> a + b);
 		mapOperations.put("*", (a, b) -> a * b);
 		mapOperations.put("/", (a, b) -> a / b);
-		mapOperations.put("%", (a, b) -> a % b);
 	}
 
 	public static String javaVariableName() {
 		return "([a-zA-Z$][\\w$]*|_[\\w$]+)";
+	}
+
+	public static String zero_300() {
+		return "[1-9]\\d?|[1-2]\\d\\d|300|0";
+	}
+
+	public static String ipV4Octet() {
+		return "([01]?\\d\\d?|2([0-4]\\d|5[0-5]))";
+	}
+
+	public static String ipV4() {
+		String octetRegex = ipV4Octet();
+		return String.format("(%s\\.){3}%1$s", octetRegex);
 	}
 
 	public static String arithmeticExpression() {
@@ -29,9 +41,14 @@ public class Strings {
 		return "\\s*([-+*/])\\s*";
 	}
 
-	public static String operand() {
-		return "(\\d+\\.?\\d*|(\\p{Alpha}))";
+	private static String operand() {
+		String numberExp = numberExp();
+		String variableExp = javaVariableName();
+		return String.format("((%s|%s))", numberExp, variableExp);
+	}
 
+	private static String numberExp() {
+		return "(\\d+\\.?\\d*|\\.\\d+)";
 	}
 
 	public static boolean isArithmeticExpression(String expression) {
@@ -46,30 +63,23 @@ public class Strings {
 		expression = expression.replaceAll("\\s+", "");
 		String[] operands = expression.split(operator());
 		String[] operators = expression.split(operand());
-		double res = parseOperand(operands[0], mapVariables);
+		double res = getValue(operands[0], mapVariables);
 		for (int i = 1; i < operands.length; i++) {
-			double operand = parseOperand(operands[i], mapVariables);
+			double operand = getValue(operands[i], mapVariables);
 			res = mapOperations.get(operators[i]).apply(res, operand);
-		}
-		return Math.round(res * 100) / 100.0;
-	}
-
-	private static double parseOperand(String operand, HashMap<String, Double> mapVariables) {
-		double res;
-		if (operand.matches(javaVariableName())) {
-			res = getValue(operand, mapVariables);
-		} else {
-			res = Double.parseDouble(operand);
 		}
 		return res;
 	}
 
 	private static double getValue(String operand, HashMap<String, Double> mapVariables) {
 		double res = 0;
-		if (mapVariables.containsKey(operand)) {
+		if (operand.matches(javaVariableName())) {
+			if (!mapVariables.containsKey(operand)) {
+				throw new NoSuchElementException();
+			}
 			res = mapVariables.get(operand);
 		} else {
-			throw new NoSuchElementException();
+			res = Double.parseDouble(operand);
 		}
 		return res;
 	}
